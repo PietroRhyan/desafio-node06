@@ -4,20 +4,16 @@ import { CreateStatementUseCase } from "./CreateStatementUseCase"
 import { ICreateStatementDTO } from "./ICreateStatementDTO"
 import { CreateUserUseCase } from "../../../users/useCases/createUser/CreateUserUseCase"
 import { ICreateUserDTO } from "../../../users/useCases/createUser/ICreateUserDTO"
-import { GetBalanceUseCase } from "../getBalance/GetBalanceUseCase"
-import { GetBalanceError } from "../getBalance/GetBalanceError"
-// import { AuthenticateUserUseCase } from "../../../users/useCases/authenticateUser/AuthenticateUserUseCase"
+import { AuthenticateUserUseCase } from "../../../users/useCases/authenticateUser/AuthenticateUserUseCase"
+import { CreateStatementError } from "./CreateStatementError"
 
 let createStatementUseCase: CreateStatementUseCase
 let statementRepositoryInMemory: InMemoryStatementsRepository
 let usersRepositoryInMemory: InMemoryUsersRepository
 
-// let authenticateUserUseCase: AuthenticateUserUseCase
+let authenticateUserUseCase: AuthenticateUserUseCase
 
 let createUserUseCase: CreateUserUseCase
-
-let getBalanceUseCase: GetBalanceUseCase
-
 
 enum OperationType {
   DEPOSIT = 'deposit',
@@ -37,14 +33,9 @@ describe('Create a new statement', () => {
       usersRepositoryInMemory
     )
 
-    getBalanceUseCase = new GetBalanceUseCase(
-      statementRepositoryInMemory,
+    authenticateUserUseCase = new AuthenticateUserUseCase(
       usersRepositoryInMemory
     )
-
-    // authenticateUserUseCase = new AuthenticateUserUseCase(
-    //   usersRepositoryInMemory
-    // )
   })
 
   it('should be able to create a new deposit statement', async () => {
@@ -56,9 +47,14 @@ describe('Create a new statement', () => {
 
     const userResult = await createUserUseCase.execute(user)
 
+    await authenticateUserUseCase.execute({
+      email: 'user@gmail.com',
+      password: '12345'
+    })
+
     const statement: ICreateStatementDTO = {
       user_id: userResult.id,
-      type: 'deposit' as OperationType,
+      type: OperationType.DEPOSIT,
       amount: 100,
       description: 'Statement description'
     }
@@ -78,9 +74,14 @@ describe('Create a new statement', () => {
 
     const userResult = await createUserUseCase.execute(user)
 
+    await authenticateUserUseCase.execute({
+      email: 'user@gmail.com',
+      password: '12345'
+    })
+
     const statement: ICreateStatementDTO = {
       user_id: userResult.id,
-      type: 'withdraw' as OperationType,
+      type: OperationType.WITHDRAW,
       amount: 0,
       description: 'Statement description'
     }
@@ -101,26 +102,24 @@ describe('Create a new statement', () => {
 
       const userResult = await createUserUseCase.execute(user)
 
+      await authenticateUserUseCase.execute({
+        email: 'user@gmail.com',
+        password: '12345'
+      })
+
       await createStatementUseCase.execute({
         user_id: userResult.id,
-        type: 'deposit' as OperationType,
+        type: OperationType.DEPOSIT,
         amount: 100,
         description: 'Statement description'
       })
 
       await createStatementUseCase.execute({
         user_id: userResult.id,
-        type: 'withdraw' as OperationType,
-        amount: 50,
+        type: OperationType.WITHDRAW,
+        amount: 500,
         description: 'Statement description'
       })
-    }).rejects.toBeInstanceOf(GetBalanceError)
-
-
-
-    // const withdrawResult = await createStatementUseCase.execute(statement)
-    // const { balance } = await getBalanceUseCase.execute({user_id: userResult.id})
-
-    // expect(withdrawResult.amount).toBeLessThanOrEqual(balance)
+    }).rejects.toBeInstanceOf(CreateStatementError.InsufficientFunds)
   })
 })

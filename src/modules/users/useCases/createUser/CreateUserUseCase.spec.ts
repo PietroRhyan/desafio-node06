@@ -23,7 +23,7 @@ describe('Create a new user', () => {
 
     const result = await createUserUseCase.execute(user)
 
-    expect(result).toHaveProperty('email')
+    expect(result).toHaveProperty('id')
   })
 
   it('should not be able to create a new user with existent email', async () => {

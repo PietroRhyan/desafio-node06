@@ -16,10 +16,10 @@ services:
 
   app:
     build: .
-    container_name: app_desafio
+    container_name: app-desafio
     restart: always
     ports:
-      - 3333:3333
+      - 3232:3232
     volumes:
       - .:/usr/app
     links:
