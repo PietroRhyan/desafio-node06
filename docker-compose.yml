@@ -8,25 +8,11 @@ services:
     ports:
       - 5432:5432
     environment:
+      - POSTGRES_DB=fin_api
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=docker
-      - POSTGRES_DB=fin_api
     volumes:
-      - pgdata:/data/postgres
-
-  app:
-    build: .
-    container_name: app-desafio
-    restart: always
-    ports:
-      - 3232:3232
-    volumes:
-      - .:/usr/app
-    links:
-      - database
-    depends_on:
-      - database
-
+      - pgdata:/var/lib/postgresql/data
 
 volumes:
   pgdata:
