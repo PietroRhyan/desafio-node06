@@ -1,12 +1,12 @@
 import { Connection } from "typeorm"
 import request from 'supertest'
 
-import createConnection from "../../../../database"
+import createConnection from '../../../../database'
 import { app } from "../../../../app"
 
 let connection: Connection
 
-describe('Create a new user', () => {
+describe('Authenticate a user', () => {
   beforeAll(async () => {
     connection = await createConnection()
     await connection.runMigrations()
@@ -17,16 +17,20 @@ describe('Create a new user', () => {
     await connection.close()
   })
 
-  it('should be able to create a new user', async () => {
-    const response = await request(app).post('/api/v1/users')
+  it('should be able to authenticate a user', async () => {
+    await request(app).post('/api/v1/users')
       .send({
         name: 'Integration Test User',
         email: 'integrationuser@gmail.com',
         password: 'testIntegration'
+    })
+
+    const response = await request(app).post('/api/v1/sessions')
+      .send({
+        email: 'integrationuser@gmail.com',
+        password: 'testIntegration'
       })
 
-    console.log(response.body)
-
-    expect(response.status).toEqual(201)
+    expect(response.body).toHaveProperty('token')
   })
 })
