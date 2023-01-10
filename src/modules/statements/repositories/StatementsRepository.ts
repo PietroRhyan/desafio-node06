@@ -2,9 +2,16 @@ import { getRepository, Repository } from "typeorm";
 
 import { Statement } from "../entities/Statement";
 import { ICreateStatementDTO } from "../useCases/createStatement/ICreateStatementDTO";
+import { ICreateTransferDTO } from "../useCases/createTransfer/ICreateTransferDTO";
 import { IGetBalanceDTO } from "../useCases/getBalance/IGetBalanceDTO";
 import { IGetStatementOperationDTO } from "../useCases/getStatementOperation/IGetStatementOperationDTO";
 import { IStatementsRepository } from "./IStatementsRepository";
+
+enum OperationType {
+  DEPOSIT = 'deposit',
+  WITHDRAW = 'withdraw',
+  TRANSFER = 'transfer'
+}
 
 export class StatementsRepository implements IStatementsRepository {
   private repository: Repository<Statement>;
@@ -60,5 +67,22 @@ export class StatementsRepository implements IStatementsRepository {
     }
 
     return { balance }
+  }
+
+  async createTransfer({
+    recipient_id,
+    sender_id,
+    amount,
+    description
+  }: ICreateTransferDTO): Promise<Statement> {
+    const statement = this.repository.create({
+      user_id: recipient_id,
+      sender_id,
+      amount,
+      description,
+      type: OperationType.TRANSFER,
+    })
+
+    return await this.repository.save(statement)
   }
 }
